@@ -359,11 +359,40 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  @media (max-width: 600px) {
-    .catalog { padding: 0 12px 40px; }
-    .toolbar { padding: 10px 12px; }
+  @media (max-width: 768px) {
+    .catalog { padding: 0 8px 40px; }
+    .toolbar { padding: 10px 12px; gap: 8px; }
     .site-header { padding: 0 14px; }
-    td { padding: 8px; }
+    .search-wrap { max-width: 100%; }
+    .result-count { display: none; }
+
+    /* Hide pack size and brand columns on mobile to make room for buttons */
+    th:nth-child(3), td:nth-child(3),
+    th:nth-child(4), td:nth-child(4) { display: none; }
+
+    /* Make table use full width */
+    table { table-layout: fixed; width: 100%; }
+    th:nth-child(1), td:nth-child(1) { width: 30%; }
+    th:nth-child(2), td:nth-child(2) { width: 45%; }
+    th:nth-child(5), td:nth-child(5) { width: 25%; }
+
+    td { padding: 8px 6px; font-size: 12px; }
+    th { font-size: 10px; padding: 6px; }
+
+    /* Make action buttons bigger and easier to tap */
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      margin: 2px 1px;
+    }
+    .td-actions { text-align: right; }
+
+    /* Stack toolbar on very small screens */
+    .filter-select { flex: 1; min-width: 120px; }
+
+    /* Modal full screen on mobile */
+    .modal { width: 100vw; height: 100vh; border-radius: 0; }
+    .email-modal { width: 94vw; padding: 20px; }
   }
 </style>
 </head>
