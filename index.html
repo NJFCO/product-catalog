@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Catalog</title>
+<style>
+  /* ── CONFIG: change PDF_BASE_PATH in the <script> below ── */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark: #1a3d2b;
+    --green-mid:  #2e6b47;
+    --green-light:#e8f3ec;
+    --amber:      #c97d1a;
+    --amber-light:#fdf4e7;
+    --gray-50:    #f9f9f7;
+    --gray-100:   #f0efeb;
+    --gray-200:   #dddbd3;
+    --gray-400:   #9a9890;
+    --gray-600:   #5c5b56;
+    --gray-800:   #2c2c2a;
+    --red:        #c0392b;
+    --white:      #ffffff;
+    --radius:     6px;
+    --shadow:     0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--green-dark);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header h1 {
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .header-meta {
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 12px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 56px;
+    z-index: 90;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    pointer-events: none;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 8px 10px 8px 34px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--green-mid); background: var(--white); }
+
+  .filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    cursor: pointer;
+    outline: none;
+  }
+  .filter-select:focus { border-color: var(--green-mid); }
+
+  .result-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+
+  /* ── CATALOG ── */
+  .catalog {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 24px 60px;
+  }
+
+  /* ── CATEGORY ── */
+  .category-block { margin-bottom: 8px; }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--green-dark);
+    color: var(--white);
+    padding: 9px 14px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .category-header .cat-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .category-header .cat-toggle {
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.7;
+    transition: transform 0.2s;
+  }
+  .category-header.collapsed .cat-toggle { transform: rotate(-90deg); }
+
+  .category-body {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+  }
+  .category-body.hidden { display: none; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--gray-100);
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  thead th:last-child { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--gray-100);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--green-light); }
+  tbody tr.hidden-row { display: none; }
+
+  td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .td-item { color: var(--gray-400); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .td-name { font-weight: 500; color: var(--gray-800); }
+  .td-pack { color: var(--gray-600); white-space: nowrap; }
+  .td-actions { text-align: center; white-space: nowrap; }
+
+  /* ── ACTION BUTTONS ── */
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    background: var(--white);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    text-decoration: none;
+    margin: 0 2px;
+  }
+  .btn-icon:hover { background: var(--gray-100); border-color: var(--gray-400); }
+  .btn-icon.pdf svg { color: var(--red); }
+  .btn-icon.email svg { color: var(--green-mid); }
+  .btn-icon.download svg { color: var(--amber); }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--gray-400);
+    font-size: 14px;
+    display: none;
+  }
+
+  /* ── PDF MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 10px;
+    width: 92vw;
+    max-width: 860px;
+    height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    flex-shrink: 0;
+  }
+  .modal-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .modal-subtitle {
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .modal-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--green-mid); color: var(--white); }
+  .btn-outline { background: var(--white); color: var(--gray-800); border-color: var(--gray-200); }
+  .btn-email { background: var(--amber); color: var(--white); }
+  .btn-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--gray-400);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+  }
+  .btn-close:hover { background: var(--gray-100); color: var(--gray-800); }
+
+  .modal-body { flex: 1; overflow: hidden; }
+  .modal-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+  .pdf-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--gray-400);
+    font-size: 14px;
+  }
+  .pdf-error svg { opacity: 0.3; }
+
+  /* ── EMAIL MODAL ── */
+  .email-modal {
+    background: var(--white);
+    border-radius: 10px;
+    width: 440px;
+    max-width: 94vw;
+    padding: 28px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  }
+  .email-modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .email-modal p { font-size: 13px; color: var(--gray-600); margin-bottom: 20px; line-height: 1.5; }
+  .form-field { margin-bottom: 14px; }
+  .form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 5px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .form-field input, .form-field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--gray-800);
+    outline: none;
+    font-family: inherit;
+  }
+  .form-field input:focus, .form-field textarea:focus { border-color: var(--green-mid); }
+  .form-field textarea { resize: vertical; min-height: 80px; }
+  .email-note {
+    background: var(--amber-light);
+    border: 1px solid #f0d090;
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #7a5010;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .catalog { padding: 0 12px 40px; }
+    .toolbar { padding: 10px 12px; }
+    .site-header { padding: 0 14px; }
+    td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Product Catalog</h1>
+  <span class="header-meta" id="header-meta"></span>
+</header>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search" placeholder="Search by item number or name…" autocomplete="off">
+  </div>
+  <select class="filter-select" id="category-filter">
+    <option value="">All categories</option>
+  </select>
+  <span class="result-count" id="result-count"></span>
+</div>
+
+<div class="catalog" id="catalog"></div>
+<div class="no-results" id="no-results">No products match your search.</div>
+
+<!-- PDF Viewer Modal -->
+<div class="modal-overlay" id="pdf-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="flex:1; overflow:hidden;">
+        <span class="modal-title" id="modal-title">Product Sheet</span>
+        <span class="modal-subtitle" id="modal-subtitle"></span>
+      </div>
+      <div class="modal-actions">
+        <a class="btn btn-outline" id="modal-download" href="#" download target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+        <button class="btn btn-email" id="modal-email-btn" onclick="openEmailModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email sheet
+        </button>
+        <button class="btn-close" onclick="closeModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <iframe id="pdf-frame" title="Product spec sheet"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal-overlay" id="email-modal">
+  <div class="email-modal">
+    <h2>Email spec sheet</h2>
+    <p id="email-product-label">Opens your email app with the product details pre-filled. Attach the PDF before sending.</p>
+    <div class="email-note">
+      <strong>Tip:</strong> The email will include a direct link to the PDF in SharePoint. The recipient can open or download it directly — no attachment needed.
+    </div>
+    <div class="form-field">
+      <label>Recipient email</label>
+      <input type="email" id="email-to" placeholder="buyer@company.com">
+    </div>
+    <div class="form-field">
+      <label>Your name (optional)</label>
+      <input type="text" id="email-from-name" placeholder="e.g. Jane Smith">
+    </div>
+    <div class="form-field">
+      <label>Additional note (optional)</label>
+      <textarea id="email-note-text" placeholder="Any extra context for the recipient…"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn btn-email" onclick="launchEmail()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Open email app
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CONFIGURATION
+// ════════════════════════════════════════════════
+const PDF_BASE_PATH = 'https://njfco.sharepoint.com/sites/TradeshowPlanning/Shared%20Documents/Sales%20Sheets/';
+const COMPANY_NAME  = 'NJFCO';
+
+// ════════════════════════════════════════════════
+//  SHAREPOINT CONFIG
+//  The page auto-fetches all PDFs from the folder
+//  below using the SharePoint REST API.
+//  Users must be logged into Microsoft 365.
+// ════════════════════════════════════════════════
+const SP_SITE    = 'https://njfco.sharepoint.com/sites/TradeshowPlanning';
+const SP_FOLDER  = 'Shared Documents/Sales Sheets';
+
+// ── FILENAME PARSING ─────────────────────────────
+// Expects filenames like: 9145600678_Sliced Pears.pdf
+// → id = '9145600678', name = 'Sliced Pears'
+//
+// Category is derived from the first 3 digits of the item number.
+// Edit CATEGORY_MAP below to assign labels to your category codes.
+// Any unmapped prefix falls back to "Other".
+// ─────────────────────────────────────────────────
+const CATEGORY_MAP = {
+  '610': '100 - NWP/BR-Cranberry Sauce',
+  '630': '100 - NWP/BR-Cranberry Sauce',
+  '631': '100 - NWP/BR-Cranberry Sauce',
+  '218': '101 - NWP/BR-Dark Sweet Cherries',
+  '219': '101 - NWP/BR-Dark Sweet Cherries',
+  // Add more: '123': 'Category Label',
+};
+
+function parseFilename(filename) {
+  // Strip .pdf extension
+  const base = filename.replace(/\.pdf$/i, '');
+  // Split on first underscore
+  const idx = base.indexOf('_');
+  if (idx === -1) return null; // skip files without underscore
+  const id   = base.slice(0, idx).trim();
+  const name = base.slice(idx + 1).trim();
+  if (!id || !name) return null;
+  // Derive category from first 3 digits of item number
+  const prefix = id.slice(0, 3);
+  const category = CATEGORY_MAP[prefix] || 'Other';
+  return { id, name, pdf: filename, pack: '', category };
+}
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let currentProduct = null;
+
+// ════════════════════════════════════════════════
+//  BUILD CATALOG
+// ════════════════════════════════════════════════
+function pdfPath(p) {
+  if (!p.pdf) return null;
+  return PDF_BASE_PATH + encodeURIComponent(p.pdf);
+}
+
+function buildCatalog(products) {
+  const catalog = document.getElementById('catalog');
+  catalog.innerHTML = '';
+
+  // Group by category
+  const groups = {};
+  products.forEach(p => {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+
+  Object.entries(groups).forEach(([cat, items]) => {
+    const block = document.createElement('div');
+    block.className = 'category-block';
+    block.dataset.category = cat;
+
+    block.innerHTML = `
+      <div class="category-header" onclick="toggleCategory(this)">
+        <span class="cat-label">${cat}</span>
+        <span class="cat-toggle">▾</span>
+      </div>
+      <div class="category-body">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:130px">Item #</th>
+              <th>Product name</th>
+              <th style="width:110px">Pack size</th>
+              <th style="width:110px">Spec sheet</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(p => {
+              const url = pdfPath(p);
+              const hasPdf = !!url;
+              const safeName = p.name.replace(/'/g,"\\'");
+              const safePdf  = (p.pdf||'').replace(/'/g,"\\'");
+              return `
+              <tr data-id="${p.id}" data-name="${p.name}" data-search="${p.id.toLowerCase()} ${p.name.toLowerCase()}">
+                <td class="td-item">${p.id}</td>
+                <td class="td-name">${p.name}</td>
+                <td class="td-pack">${p.pack}</td>
+                <td class="td-actions">
+                  ${hasPdf ? `
+                  <button class="btn-icon pdf" title="Open spec sheet" onclick="openPDF('${safeName}','${safePdf}','${p.pack}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  </button>
+                  <button class="btn-icon email" title="Email spec sheet" onclick="quickEmail('${p.id}','${safeName}','${p.pack}','${safePdf}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  </button>
+                  <a class="btn-icon download" title="Download PDF" href="${url}" target="_blank">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </a>
+                  ` : `<span style="font-size:11px;color:var(--gray-400)">No sheet</span>`}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    catalog.appendChild(block);
+  });
+
+  updateCount();
+}
+
+function toggleCategory(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('hidden');
+}
+
+// ════════════════════════════════════════════════
+//  SEARCH & FILTER
+// ════════════════════════════════════════════════
+function populateCategoryFilter(products) {
+  const sel = document.getElementById('category-filter');
+  // Clear existing options except first
+  while (sel.options.length > 1) sel.remove(1);
+  const cats = [...new Set(products.map(p => p.category))].sort();
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function applyFilters() {
+  const query = document.getElementById('search').value.toLowerCase().trim();
+  const catFilter = document.getElementById('category-filter').value;
+
+  let visibleTotal = 0;
+
+  document.querySelectorAll('.category-block').forEach(block => {
+    const cat = block.dataset.category;
+    const catMatch = !catFilter || cat === catFilter;
+    let catVisible = 0;
+
+    block.querySelectorAll('tbody tr').forEach(row => {
+      const search = row.dataset.search || '';
+      const matches = catMatch && (!query || search.includes(query));
+      row.classList.toggle('hidden-row', !matches);
+      if (matches) catVisible++;
+    });
+
+    block.style.display = catVisible > 0 ? '' : 'none';
+    visibleTotal += catVisible;
+  });
+
+  document.getElementById('no-results').style.display = visibleTotal === 0 ? 'block' : 'none';
+  updateCount(visibleTotal);
+}
+
+function updateCount(n) {
+  const total = n !== undefined ? n : PRODUCTS.length;
+  document.getElementById('result-count').textContent = `${total} item${total !== 1 ? 's' : ''}`;
+}
+
+// ════════════════════════════════════════════════
+//  PDF VIEWER
+//  Opens PDF in new tab — SharePoint blocks iframes.
+// ════════════════════════════════════════════════
+function openPDF(name, pdf, pack) {
+  currentProduct = { name, pdf, pack };
+  window.open(PDF_BASE_PATH + encodeURIComponent(pdf), '_blank');
+}
+
+function closeModal() {
+  document.getElementById('pdf-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ════════════════════════════════════════════════
+//  EMAIL
+// ════════════════════════════════════════════════
+function quickEmail(id, name, pack, pdf) {
+  currentProduct = { id, name, pack, pdf };
+  openEmailModal();
+}
+
+function openEmailModal() {
+  if (currentProduct) {
+    document.getElementById('email-product-label').textContent =
+      `Spec sheet for: ${currentProduct.name}${currentProduct.pack ? ' · ' + currentProduct.pack : ''}`;
+  }
+  document.getElementById('email-modal').classList.add('open');
+}
+
+function closeEmailModal() {
+  document.getElementById('email-modal').classList.remove('open');
+}
+
+function launchEmail() {
+  if (!currentProduct) return;
+  const to = document.getElementById('email-to').value.trim();
+  const fromName = document.getElementById('email-from-name').value.trim();
+  const note = document.getElementById('email-note-text').value.trim();
+
+  const subject = encodeURIComponent(`${COMPANY_NAME} — Spec Sheet: ${currentProduct.name}`);
+  const pdfUrl = PDF_BASE_PATH + encodeURIComponent(currentProduct.pdf);
+
+  let body = `Hi,\n\nPlease find the spec sheet for the following product:\n\n`;
+  body += `  Product: ${currentProduct.name}\n`;
+  body += `  Item #:  ${currentProduct.id}\n`;
+  if (currentProduct.pack) body += `  Pack:    ${currentProduct.pack}\n`;
+  body += `\n`;
+  if (note) body += `${note}\n\n`;
+  body += `View / download the spec sheet here:\n${pdfUrl}\n\n`;
+  if (fromName) body += `${fromName}\n`;
+
+  const mailto = `mailto:${to}?subject=${subject}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+
+  closeEmailModal();
+}
+
+// Close modals on overlay click
+document.getElementById('pdf-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('pdf-modal')) closeModal();
+});
+document.getElementById('email-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('email-modal')) closeEmailModal();
+});
+
+// Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeEmailModal(); }
+});
+
+// ════════════════════════════════════════════════
+//  INIT — fetch files from SharePoint then build
+// ════════════════════════════════════════════════
+document.getElementById('search').addEventListener('input', applyFilters);
+document.getElementById('category-filter').addEventListener('change', applyFilters);
+
+async function loadFromSharePoint() {
+  const catalog  = document.getElementById('catalog');
+  const noResult = document.getElementById('no-results');
+
+  // Show loading state
+  catalog.innerHTML = `
+    <div style="text-align:center;padding:60px 24px;color:var(--gray-400);">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 14px;display:block;opacity:0.4;animation:spin 1s linear infinite">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      <div style="font-size:14px;">Loading product catalog from SharePoint…</div>
+    </div>`;
+
+  try {
+    // SharePoint REST API — lists all files in the folder
+    // Works for logged-in M365 users with read access; no app registration needed.
+    const encodedFolder = encodeURIComponent(SP_FOLDER);
+    const apiUrl = `${SP_SITE}/_api/web/GetFolderByServerRelativeUrl('${SP_FOLDER}')/Files?$select=Name,ServerRelativeUrl&$orderby=Name&$top=1000`;
+
+    const res = await fetch(apiUrl, {
+      headers: { 'Accept': 'application/json;odata=verbose' },
+      credentials: 'include'   // sends the M365 session cookie automatically
+    });
+
+    if (!res.ok) {
+      throw new Error(`SharePoint API returned ${res.status} — make sure you're logged into Microsoft 365 and have access to the Sales Sheets folder.`);
+    }
+
+    const data = await res.json();
+    const files = data.d.results;
+
+    if (!files || files.length === 0) {
+      throw new Error('No PDF files found in the Sales Sheets folder. Check that the folder path is correct.');
+    }
+
+    // Parse filenames into product objects
+    const products = files
+      .filter(f => f.Name.toLowerCase().endsWith('.pdf'))
+      .map(f => parseFilename(f.Name))
+      .filter(Boolean) // skip unparseable filenames
+      .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+
+    if (products.length === 0) {
+      throw new Error('PDFs found but none matched the expected filename format (ItemNumber_ProductName.pdf).');
+    }
+
+    document.getElementById('header-meta').textContent = `${products.length} products`;
+    populateCategoryFilter(products);
+    buildCatalog(products);
+
+  } catch (err) {
+    catalog.innerHTML = '';
+    noResult.style.display = 'block';
+    noResult.innerHTML = `
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 14px;display:block;opacity:0.3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="font-weight:600;margin-bottom:8px;color:var(--gray-600)">Could not load catalog</div>
+      <div style="font-size:13px;max-width:420px;margin:0 auto;line-height:1.6">${err.message}</div>
+      <button onclick="loadFromSharePoint()" style="margin-top:18px;padding:8px 20px;background:var(--green-mid);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Try again</button>`;
+  }
+}
+
+loadFromSharePoint();
+</script>
+</body>
+</html>
