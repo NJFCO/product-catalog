@@ -211,7 +211,6 @@
   }
   .btn-icon:hover { background: var(--gray-100); border-color: var(--gray-400); }
   .btn-icon.pdf svg { color: var(--red); }
-  .btn-icon.email svg { color: var(--green-mid); }
   .btn-icon.download svg { color: var(--amber); }
 
   /* NO RESULTS */
@@ -288,7 +287,6 @@
   .btn:hover { opacity: 0.85; }
   .btn-primary { background: var(--green-mid); color: var(--white); }
   .btn-outline { background: var(--white); color: var(--gray-800); border-color: var(--gray-200); }
-  .btn-email { background: var(--amber); color: var(--white); }
   .btn-close {
     background: none;
     border: none;
@@ -320,79 +318,75 @@
   }
   .pdf-error svg { opacity: 0.3; }
 
-  /* EMAIL MODAL */
-  .email-modal {
-    background: var(--white);
-    border-radius: 10px;
-    width: 440px;
-    max-width: 94vw;
-    padding: 28px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-  }
-  .email-modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-  .email-modal p { font-size: 13px; color: var(--gray-600); margin-bottom: 20px; line-height: 1.5; }
-  .form-field { margin-bottom: 14px; }
-  .form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 5px; letter-spacing: 0.04em; text-transform: uppercase; }
-  .form-field input, .form-field textarea {
-    width: 100%;
-    padding: 9px 11px;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius);
-    font-size: 13px;
-    color: var(--gray-800);
-    outline: none;
-    font-family: inherit;
-  }
-  .form-field input:focus, .form-field textarea:focus { border-color: var(--green-mid); }
-  .form-field textarea { resize: vertical; min-height: 80px; }
-  .email-note {
-    background: var(--amber-light);
-    border: 1px solid #f0d090;
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    font-size: 12px;
-    color: #7a5010;
-    margin-bottom: 18px;
-    line-height: 1.5;
-  }
-  .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
-
   @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 768px) {
     .catalog { padding: 0 8px 40px; }
-    .toolbar { padding: 10px 12px; gap: 8px; }
+    .toolbar { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
     .site-header { padding: 0 14px; }
-    .search-wrap { max-width: 100%; }
+    .search-wrap { max-width: 100%; flex: 1 1 100%; }
+    .filter-select { flex: 1; }
     .result-count { display: none; }
 
-    /* Hide pack size and brand columns on mobile to make room for buttons */
-    th:nth-child(3), td:nth-child(3),
-    th:nth-child(4), td:nth-child(4) { display: none; }
+    /* Switch from table to card layout on mobile */
+    thead { display: none; }
+    table { display: block; }
+    tbody { display: block; }
 
-    /* Make table use full width */
-    table { table-layout: fixed; width: 100%; }
-    th:nth-child(1), td:nth-child(1) { width: 30%; }
-    th:nth-child(2), td:nth-child(2) { width: 45%; }
-    th:nth-child(5), td:nth-child(5) { width: 25%; }
-
-    td { padding: 8px 6px; font-size: 12px; }
-    th { font-size: 10px; padding: 6px; }
-
-    /* Make action buttons bigger and easier to tap */
-    .btn-icon {
-      width: 36px;
-      height: 36px;
-      margin: 2px 1px;
+    tbody tr {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 10px 12px;
+      gap: 2px;
     }
-    .td-actions { text-align: right; }
+    tbody tr:hover { background: var(--green-light); }
 
-    /* Stack toolbar on very small screens */
-    .filter-select { flex: 1; min-width: 120px; }
+    td {
+      display: block;
+      padding: 0;
+      border: none;
+      font-size: 13px;
+    }
 
-    /* Modal full screen on mobile */
+    td.td-item {
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    td.td-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+      line-height: 1.3;
+    }
+
+    /* Brand cell */
+    td:nth-child(3) {
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    /* Pack size — hide on mobile */
+    td:nth-child(4) { display: none; }
+
+    /* Action buttons — full row at bottom of card */
+    td.td-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .btn-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+    }
+    .btn-icon svg { width: 20px; height: 20px; }
+
+    /* Modal full screen */
     .modal { width: 100vw; height: 100vh; border-radius: 0; }
-    .email-modal { width: 94vw; padding: 20px; }
   }
 </style>
 </head>
@@ -430,10 +424,6 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </a>
-        <button class="btn btn-email" id="modal-email-btn" onclick="openEmailModal()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          Email sheet
-        </button>
         <button class="btn-close" onclick="closeModal()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -443,34 +433,8 @@
       <iframe id="pdf-frame" title="Product spec sheet"></iframe>
     </div>
   </div>
-</div>
-
-<!-- Email Modal -->
-<div class="modal-overlay" id="email-modal">
-  <div class="email-modal">
-    <h2>Email spec sheet</h2>
-    <p id="email-product-label">Opens your email app with the product details pre-filled. Attach the PDF before sending.</p>
-    <div class="email-note">
-      <strong>Tip:</strong> The email will include a direct link to the PDF in SharePoint. The recipient can open or download it directly -- no attachment needed.
-    </div>
-    <div class="form-field">
-      <label>Recipient email</label>
-      <input type="email" id="email-to" placeholder="buyer@company.com">
-    </div>
-    <div class="form-field">
-      <label>Your name (optional)</label>
-      <input type="text" id="email-from-name" placeholder="e.g. Jane Smith">
-    </div>
-    <div class="form-field">
-      <label>Additional note (optional)</label>
-      <textarea id="email-note-text" placeholder="Any extra context for the recipient..."></textarea>
-    </div>
-    <div class="form-actions">
+</div><div class="form-actions">
       <button class="btn btn-outline" onclick="closeEmailModal()">Cancel</button>
-      <button class="btn btn-email" onclick="launchEmail()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Open email app
-      </button>
     </div>
   </div>
 </div>
@@ -960,15 +924,6 @@ function buildCatalog(products) {
                     onclick="openPDF(this.dataset.name, this.dataset.pdf, this.dataset.pack)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                   </button>
-                  <button class="btn-icon email" title="Email spec sheet"
-                    data-id="${p.id}"
-                    data-pdf="${p.pdf.replace(/"/g,'&quot;')}"
-                    data-name="${p.name.replace(/"/g,'&quot;')}"
-                    data-brand="${(p.brand||'').replace(/"/g,'&quot;')}"
-                    data-pack="${p.pack}"
-                    onclick="quickEmail(this.dataset.id, this.dataset.name, this.dataset.pack, this.dataset.pdf, this.dataset.brand)">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  </button>
                   <a class="btn-icon download" title="Download PDF" href="${url}" target="_blank">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </a>
@@ -1054,59 +1009,20 @@ function closeModal() {
 // ================================================
 //  EMAIL
 // ================================================
-function quickEmail(id, name, pack, pdf, brand) {
-  currentProduct = { id, name, pack, pdf, brand };
-  openEmailModal();
-}
 
-function openEmailModal() {
-  if (currentProduct) {
-    document.getElementById('email-product-label').textContent =
-      `Spec sheet for: ${currentProduct.name}${currentProduct.pack ? ' - ' + currentProduct.pack : ''}`;
-  }
   document.getElementById('email-modal').classList.add('open');
 }
 
-function closeEmailModal() {
-  document.getElementById('email-modal').classList.remove('open');
-}
 
-function launchEmail() {
-  if (!currentProduct) return;
-  const to = document.getElementById('email-to').value.trim();
-  const fromName = document.getElementById('email-from-name').value.trim();
-  const note = document.getElementById('email-note-text').value.trim();
-
-  const subject = encodeURIComponent(`${COMPANY_NAME} -- Spec Sheet: ${currentProduct.name}`);
-  const pdfUrl = PDF_BASE_PATH + encodeURIComponent(currentProduct.pdf);
-
-  let body = `Hi,\n\nPlease find the spec sheet for the following product:\n\n`;
-  body += `  Product: ${currentProduct.name}\n`;
-  body += `  Item #:  ${currentProduct.id}\n`;
-  if (currentProduct.brand) body += `  Brand:   ${currentProduct.brand}\n`;
-  if (currentProduct.pack) body += `  Pack:    ${currentProduct.pack}\n`;
-  body += `\n`;
-  if (note) body += `${note}\n\n`;
-  body += `View / download the spec sheet here:\n${pdfUrl}\n\n`;
-  if (fromName) body += `${fromName}\n`;
-
-  const mailto = `mailto:${to}?subject=${subject}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailto;
-
-  closeEmailModal();
-}
 
 // Close modals on overlay click
 document.getElementById('pdf-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('pdf-modal')) closeModal();
 });
-document.getElementById('email-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('email-modal')) closeEmailModal();
-});
 
 // Escape key
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeEmailModal(); }
+  if (e.key === 'Escape') { closeModal(); }
 });
 
 // ================================================
