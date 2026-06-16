@@ -1006,15 +1006,6 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-// ================================================
-//  EMAIL
-// ================================================
-
-  document.getElementById('email-modal').classList.add('open');
-}
-
-
-
 // Close modals on overlay click
 document.getElementById('pdf-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('pdf-modal')) closeModal();
