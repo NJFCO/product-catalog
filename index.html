@@ -788,11 +788,11 @@ function buildCatalog(products) {
     block.dataset.category = cat;
 
     block.innerHTML = `
-      <div class="category-header" onclick="toggleCategory(this)">
+      <div class="category-header collapsed" onclick="toggleCategory(this)">
         <span class="cat-label">${cat}</span>
         <span class="cat-toggle">▾</span>
       </div>
-      <div class="category-body">
+      <div class="category-body hidden">
         <table>
           <thead>
             <tr>
@@ -806,8 +806,6 @@ function buildCatalog(products) {
             ${items.map(p => {
               const url = pdfPath(p);
               const hasPdf = !!url;
-              const safeName = p.name.replace(/'/g,"\\'");
-              const safePdf  = (p.pdf||'').replace(/'/g,"\\'");
               return `
               <tr data-id="${p.id}" data-name="${p.name}" data-search="${p.id.toLowerCase()} ${p.name.toLowerCase()}">
                 <td class="td-item">${p.id}</td>
@@ -815,10 +813,19 @@ function buildCatalog(products) {
                 <td class="td-pack">${p.pack}</td>
                 <td class="td-actions">
                   ${hasPdf ? `
-                  <button class="btn-icon pdf" title="Open spec sheet" onclick="openPDF('${safeName}','${safePdf}','${p.pack}')">
+                  <button class="btn-icon pdf" title="Open spec sheet"
+                    data-pdf="${p.pdf.replace(/"/g,'&quot;')}"
+                    data-name="${p.name.replace(/"/g,'&quot;')}"
+                    data-pack="${p.pack}"
+                    onclick="openPDF(this.dataset.name, this.dataset.pdf, this.dataset.pack)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                   </button>
-                  <button class="btn-icon email" title="Email spec sheet" onclick="quickEmail('${p.id}','${safeName}','${p.pack}','${safePdf}')">
+                  <button class="btn-icon email" title="Email spec sheet"
+                    data-id="${p.id}"
+                    data-pdf="${p.pdf.replace(/"/g,'&quot;')}"
+                    data-name="${p.name.replace(/"/g,'&quot;')}"
+                    data-pack="${p.pack}"
+                    onclick="quickEmail(this.dataset.id, this.dataset.name, this.dataset.pack, this.dataset.pdf)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   </button>
                   <a class="btn-icon download" title="Download PDF" href="${url}" target="_blank">
